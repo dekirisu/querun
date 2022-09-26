@@ -26,3 +26,6 @@ redis = { version = "^0.21.6", features = ["connection-manager"] }
 
 [patch.crates-io]
 querun_derive = {path = "./derive"}
+
+[workspace]
+members = ["derive"]
