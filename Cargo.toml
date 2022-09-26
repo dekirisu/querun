@@ -6,7 +6,7 @@ edition = "2021"
 authors = ["Dekirisu <dekirisu@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dekirisu/querun/"
-description = ""
+description = "Run querio structs on a redisgraph server"
 
 [dependencies]
 querio = {version="0.0.1", features = ["flatten","native_io"]}
