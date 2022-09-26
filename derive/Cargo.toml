@@ -1,0 +1,17 @@
+[package]
+name = "querun_derive"
+version = "0.0.1"
+edition = "2021"
+
+authors = ["Dekirisu <dekirisu@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/dekirisu/querun/"
+description = "Derive macro for querun"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
+proc-macro2 = "1.0.43"
