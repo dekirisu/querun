@@ -34,28 +34,28 @@ impl QuerunRedisGraphExe {
     /// Executes the query on the Redis-Server handed over by the [`redis::aio::ConnectionManager`]
     /// 
     /// [`redis::aio::ConnectionManager`]:https://docs.rs/redis/0.21.5/redis/aio/struct.ConnectionManager.html
-    async fn result_async<C>(con: &mut C, query: String) -> Result<String,QueryError>
+    async fn result_async<C>(con: &mut C, dbname: &str, query: String) -> Result<String,QueryError>
         where C: aio::ConnectionLike
     {
         let res: Result<Vec<redis::Value>, RedisError> = 
-            redis::cmd("GRAPH.QUERY").arg("Main").arg(query).query_async(con).await;
+            redis::cmd("GRAPH.QUERY").arg(dbname).arg(query).query_async(con).await;
         let out = if let Ok(res) = res {
             if res.len()==3 {
                 let b: Result<Vec<Vec<String>>, serde_redis::decode::Error> = res[1].deserialize();
                 if let Ok(out) = b {
                     if out.len()==1 {
                         Ok(out[0][0].to_owned())
-                    } else { Err(QueryError::NoReturn) }
+                    } else { Err(QueryError::NoReturn) } 
                 } else { Err(QueryError::NoStringReturn) }
             } else { Err(QueryError::NoResult) }
         } else { Err(QueryError::Query) };
         out
     }
-    async fn execute_async<C>(con: &mut C, query: String) -> Result<(),QueryError> 
+    async fn execute_async<C>(con: &mut C, dbname: &str, query: String) -> Result<(),QueryError> 
         where C: aio::ConnectionLike
     {
         let res: Result<Vec<redis::Value>, RedisError> = 
-            redis::cmd("GRAPH.QUERY").arg("Main").arg(query).query_async(con).await;
+            redis::cmd("GRAPH.QUERY").arg(dbname).arg(query).query_async(con).await;
         let out = if let Ok(_res) = res {
             Ok(())
         } else { Err(QueryError::Query) };
@@ -68,11 +68,21 @@ pub trait QuerunRedisGraph: Querio {
     async fn querun_async_json<C>(con: &mut C, native_a: &Self::QuerioInputA, native_b: &Self::QuerioInputB, vars: &Self::QuerioVariable) -> Result<String,QueryError> 
         where C: aio::ConnectionLike + Send, Self::QuerioInputA: Send + Sync, Self::QuerioInputB: Send + Sync, Self::QuerioVariable: Send + Sync
     {
-        QuerunRedisGraphExe::result_async(con,Self::querio(&native_a, &native_b, &vars)).await
+        QuerunRedisGraphExe::result_async(con,"Main",Self::querio(&native_a, &native_b, &vars)).await
     }
     async fn qrun_async_json<C>(con: &mut C, native_a: <<Self as Querio>::QuerioInputA as IntupleStruct>::Intuple, native_b: <<Self as Querio>::QuerioInputB as IntupleStruct>::Intuple, vars: <<Self as Querio>::QuerioVariable as IntupleStruct>::Intuple) -> Result<String,QueryError> 
         where C: aio::ConnectionLike + Send, <<Self as Querio>::QuerioInputA as IntupleStruct>::Intuple: Send + Sync, <<Self as Querio>::QuerioInputB as IntupleStruct>::Intuple: Send + Sync, <<Self as Querio>::QuerioVariable as IntupleStruct>::Intuple: Send + Sync
     {
-        QuerunRedisGraphExe::result_async(con,Self::qrio(native_a,native_b,vars)).await
+        QuerunRedisGraphExe::result_async(con,"Main",Self::qrio(native_a,native_b,vars)).await
+    }
+    async fn querun_named_async_json<C>(con: &mut C, dbname: &str, native_a: &Self::QuerioInputA, native_b: &Self::QuerioInputB, vars: &Self::QuerioVariable) -> Result<String,QueryError> 
+        where C: aio::ConnectionLike + Send, Self::QuerioInputA: Send + Sync, Self::QuerioInputB: Send + Sync, Self::QuerioVariable: Send + Sync
+    {
+        QuerunRedisGraphExe::result_async(con,dbname,Self::querio(&native_a, &native_b, &vars)).await
+    }
+    async fn qrun_named_async_json<C>(con: &mut C, dbname: &str, native_a: <<Self as Querio>::QuerioInputA as IntupleStruct>::Intuple, native_b: <<Self as Querio>::QuerioInputB as IntupleStruct>::Intuple, vars: <<Self as Querio>::QuerioVariable as IntupleStruct>::Intuple) -> Result<String,QueryError> 
+        where C: aio::ConnectionLike + Send, <<Self as Querio>::QuerioInputA as IntupleStruct>::Intuple: Send + Sync, <<Self as Querio>::QuerioInputB as IntupleStruct>::Intuple: Send + Sync, <<Self as Querio>::QuerioVariable as IntupleStruct>::Intuple: Send + Sync
+    {
+        QuerunRedisGraphExe::result_async(con,dbname,Self::qrio(native_a,native_b,vars)).await
     }
 }
